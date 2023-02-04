@@ -1,0 +1,17 @@
+Source: kde-service-menu-mount-nbd
+Section: otherosfs
+Priority: optional
+Maintainer: Alexis Murzeau <amubtdx@gmail.com>
+Build-Depends: debhelper-compat (= 13)
+Standards-Version: 4.5.1
+Rules-Requires-Root: no
+
+Package: kde-service-menu-mount-nbd
+Architecture: all
+Depends: ${misc:Depends},
+ qemu-utils,
+ procps,
+ kmod
+Description: KDE service menu to mount image with qemu-nbd
+ This package provides a KDE service menu to be able to mount image
+ within dolphin.

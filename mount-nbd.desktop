@@ -1,0 +1,14 @@
+[Desktop Action mountnbd]
+Exec=pkexec mount-nbd %F
+Icon=media-mount
+Name=Mount image
+
+[Desktop Action umountnbd]
+Exec=pkexec umount-nbd %F
+Icon=media-eject
+Name=Unmount image
+
+[Desktop Entry]
+Type=Service
+MimeType=application/x-qemu-disk;application/x-qed-disk;application/x-vhd-disk;application/x-vhdx-disk;application/x-vmdk-disk;application/x-vdi-disk;application/x-raw-disk-image;
+Actions=mountnbd;umountnbd;

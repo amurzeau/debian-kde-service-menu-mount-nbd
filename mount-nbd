@@ -1,0 +1,46 @@
+#!/bin/bash
+
+set -e
+
+IMAGE_FILE="$1"
+
+if [ -z "$IMAGE_FILE" ]; then
+	echo "Usage: $0 image_file.img" >&2
+	exit 1
+fi
+
+get_next_available_nbd() {
+	for i in $(printf "%s\n" /dev/nbd* | sort -V); do
+		NBD_DEVICE_NAME=${i#/dev/}
+		NBD_DEVICE_SIZE=$(cat "/sys/class/block/$NBD_DEVICE_NAME/size")
+		if [ $NBD_DEVICE_SIZE -eq 0 ]; then
+			echo $NBD_DEVICE_NAME
+			return
+		fi
+	done
+}
+
+echo "Probing nbd"
+modprobe nbd
+
+echo "Checking next available nbd device"
+NBD_DEVICE=$(get_next_available_nbd)
+if [ -z "$NBD_DEVICE" ]; then
+	echo "No more nbd devices available, can't mount $IMAGE_FILE" >&2
+	exit 1
+fi
+
+IMAGE_FILE_ABSOLUTE=$(readlink -f "$IMAGE_FILE")
+
+echo "Checking if $IMAGE_FILE_ABSOLUTE already mounted"
+for pid in $(pgrep qemu-nbd); do
+    PID_IMAGE_FILE=$(tail -zn1 "/proc/$pid/cmdline")
+    PID_NBD_DEVICE=$(sed -zn '3p' "/proc/$pid/cmdline")
+    if [ "$PID_IMAGE_FILE" == "$IMAGE_FILE_ABSOLUTE" ]; then
+        echo "Image $IMAGE_FILE_ABSOLUTE already mounted on $PID_NBD_DEVICE"
+        exit 0
+    fi
+done
+
+echo "Mounting $IMAGE_FILE_ABSOLUTE on $NBD_DEVICE"
+qemu-nbd -c "/dev/$NBD_DEVICE" "$IMAGE_FILE_ABSOLUTE"

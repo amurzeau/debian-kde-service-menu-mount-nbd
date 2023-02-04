@@ -1,0 +1,32 @@
+#!/bin/bash
+
+set -e
+
+IMAGE_FILE="$1"
+
+if [ -z "$IMAGE_FILE" ]; then
+	echo "Usage: $0 image_file.img" >&2
+	exit 1
+fi
+
+IMAGE_FILE_ABSOLUTE=$(readlink -f "$IMAGE_FILE")
+
+echo "Checking if $IMAGE_FILE_ABSOLUTE already mounted"
+for pid in $(pgrep qemu-nbd); do
+    PID_NBD_DEVICE=$(sed -zn '3p' "/proc/$pid/cmdline" | tr -d '\0')
+    PID_IMAGE_FILE=$(tail -zn1 "/proc/$pid/cmdline" | tr -d '\0')
+
+    if [[ $PID_IMAGE_FILE != /* ]]; then
+        echo "Using fd/5 to get image file"
+        PID_IMAGE_FILE=$(readlink -f /proc/$pid/fd/5)
+    fi
+
+    if [ "$PID_IMAGE_FILE" == "$IMAGE_FILE_ABSOLUTE" ]; then
+        echo "Umounting image $IMAGE_FILE_ABSOLUTE on $PID_NBD_DEVICE"
+        qemu-nbd -d "$PID_NBD_DEVICE"
+        exit 0
+    fi
+done
+
+echo "Image $IMAGE_FILE_ABSOLUTE not mounted"
+exit 1

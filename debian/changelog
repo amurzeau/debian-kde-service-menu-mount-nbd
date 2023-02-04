@@ -1,0 +1,5 @@
+kde-service-menu-mount-nbd (1.0.0) unstable; urgency=low
+
+  * Initial release.
+
+ -- Alexis Murzeau <amubtdx@gmail.com>  Sat, 04 Feb 2023 18:12:09 +0100

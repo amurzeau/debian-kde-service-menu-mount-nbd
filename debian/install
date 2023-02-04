@@ -1,0 +1,3 @@
+mount-nbd usr/bin/
+umount-nbd usr/bin/
+mount-nbd.desktop usr/share/kio/servicemenus/
